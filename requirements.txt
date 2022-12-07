@@ -1,0 +1,14 @@
+beautifulsoup4==4.9
+django==4.1
+django-extensions==3.2
+jupyter==1.0
+mechanize==0.4
+nltk==3.5
+numpy==1.23
+pandas==1.5
+plotly==5.11
+requests==2.24
+seaborn==0.10
+selenium==3.141
+scikit-learn==1.1
+
