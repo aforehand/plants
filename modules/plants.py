@@ -510,5 +510,4 @@ class GuildRecommender:
 
 # TODO: include 'Leaves Spring ephemeral' with herbs that grow later'
 # TODO: add method to get columns and add option to filter by specified columns
-# TODO: find lifecycle columns and add to all_native_plants
 # TODO: fix redundant and unnamed columns
