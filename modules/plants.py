@@ -394,18 +394,17 @@ class GuildRecommender:
                             'loamy coarse sand', 'loamy fine sand', 
                             'loamy very fine sand', 'very fine sand', 
                             'loamy sand'}:
-            self.soil_texture = 'coarse Soil'
+            self.soil_texture = 'coarse soil'
         elif soil_texture in {'medium', 'silt', 'sandy clay loam', 
                             'very fine sandy loam', 'silty clay loam', 
                             'silt loam', 'loam', 'fine  sandy loam', 'sandy loam', 
                             'coarse sandy loam', 'clay loam'}:
-            self.soil_texture = 'medium Soil'
+            self.soil_texture = 'medium soil'
         elif soil_texture in {'fine', 'sandy clay', 'silty clay', 'clay'}:
-            self.soil_texture = 'fine Soil'
+            self.soil_texture = 'fine soil'
         self.habits = {'herb/forb', 'shrub', 'tree', 'cactus/succulent', 
             'grass/grass-like', 'fern', 'vine'}
         plants = pd.read_csv('../data/all_native_plants.csv')
-        import pdb; pdb.set_trace()
         plants = plants[(plants['minimum cold hardiness']<=zone) & 
             ((plants['maximum recommended zone']==np.nan) | 
             (plants['maximum recommended zone']>=zone))]
