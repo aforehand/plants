@@ -2,7 +2,6 @@ import pandas as pd
 import re
 import numpy as np
 import random
-import selenium
 from selenium.webdriver import Firefox
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import Select
@@ -96,7 +95,7 @@ class PlantRecommender:
         self.driver.get(self.garden_search_url)
         # garden.org search parameters
         self.sections = [s for s in self.driver.find_elements_by_xpath('//p') if
-            s.text is not '']
+            s.text != '']
         self.plant_habit = self.get_inputs(self.sections[0])
         self.life_cycle = Select(self.sections[1].find_element_by_xpath(
             './/select'))
@@ -239,7 +238,7 @@ class PlantRecommender:
         if new:
             plants = pd.DataFrame()
         else:
-            plants = pd.read_csv('all_native_plants.csv')                   
+            plants = pd.read_csv('../data/all_native_plants.csv')                   
         options = Options()
         options.headless = True
         for i in range(74200,93000,1000):
@@ -252,7 +251,7 @@ class PlantRecommender:
             data_list = eval(data_list.text.replace('null', 'None'))['data']
             for j in range(len(data_list)):
                 if j % 10 == 1:
-                    plants.to_csv('all_native_plants.csv', index=False)
+                    plants.to_csv('../data/all_native_plants.csv', index=False)
                     self.driver.quit()
                     self.driver = Firefox(options=options)
                     print('.', end='', flush=True)
@@ -327,24 +326,28 @@ class GuildRecommender:
     zone: int, default=7
         USDA hardiness zone of intended site. Can range from 1-10.
 
-    water: {'In Water', 'Wet', 'Wet Mesic', 'Mesic', 'Dry Mesic', 'Dry'}, 
-    default='Mesic'
-        The moisute of the soil at the site.
+    water: string, 
+        default='mesic'
+        The moisute of the soil at the site. 
+        Values can be {'in water', 'wet', 'wet mesic', 'mesic', 'dry mesic', 'dry'}
 
     ph: int, default=6.5
         The pH of the soil at the site.
     
-    sun: string, default='Full Sun'
+    sun: string, default='full sun'
         How much sun is available at the site.
+        Vlaues can be {'full sun', 'full sun to partial shade',
+            'partial or dappled shade', 'partial shade to full shade', 
+            'full shade'}
 
     soil_texture: string, default='medium'
         Values can be {'coarse', 'medium', 'fine'}, or from the 
-        Soil Texture Triangle, {'sand', 'coarse_sand', 'fine_sand', 
-        'loamy_coarse_sand', 'loamy_fine_sand', 'loamy_very_fine_sand', 
-        'very_fine_sand', 'loamy_sand', 'silt', 'sandy_clay_loam', 
-        'very_fine_sandy_loam', 'silty_clay_loam', 'silt_loam', 'loam', 
-        'fine_sandy_loam', 'sandy_loam', 'coarse_sandy_loam', 'clay_loam', 
-        'sandy_clay', 'silty_clay', 'clay'}.
+        Soil Texture Triangle, {'sand', 'coarse sand', 'fine  sand', 
+        'loamy coarse sand', 'loamy fine sand', 'loamy very fine sand', 
+        'very fine sand', 'loamy sand', 'silt', 'sandy clay loam', 
+        'very fine sandy loam', 'silty clay loam', 'silt loam', 'loam', 
+        'fine  sandy loam', 'sandy loam', 'coarse sandy loam', 'clay loam', 
+        'sandy clay', 'silty clay', 'clay'}.
 
     include_trees: boolean, defualt=True
         Whether or not trees can be considered when creating guilds.
@@ -356,8 +359,8 @@ class GuildRecommender:
         Whether only perennial plants will be considered when creating guilds.
     """
 
-    def __init__(self, num_layers=None, zone=7, water='Mesic', ph=6.5, 
-                sun='Full Sun', soil_texture='medium', include_trees=True, 
+    def __init__(self, num_layers=None, zone=7, water='mesic', ph=6.5, 
+                sun='full sun', soil_texture='medium', include_trees=True, 
                 edible_only=False, perennial_only=True):
         if num_layers==None:
             self.num_layers = random.randint(2,7)
@@ -366,45 +369,46 @@ class GuildRecommender:
         self.zone = zone 
         self.water = water 
         if ph < 4.5:
-            self.ph = 'Extremely acid (3.5 – 4.4)'
+            self.ph = 'extremely acid (3.5 - 4.4)'
         elif ph < 5.1:
-            self.ph = 'Very strongly acid (4.5 – 5.0)'
+            self.ph = 'very strongly acid (4.5 - 5.0)'
         elif ph < 5.6:
-            self.ph = 'Strongly acid (5.1 – 5.5)'
+            self.ph = 'strongly acid (5.1 - 5.5)'
         elif ph < 6.1:
-            self.ph = 'Moderately acid (5.6 – 6.0)'
+            self.ph = 'moderately acid (5.6 - 6.0)'
         elif ph < 6.6:
-            self.ph = 'Slightly acid (6.1 – 6.5)'
+            self.ph = 'slightly acid (6.1 - 6.5)'
         elif ph < 7.4:
-            self.ph = 'Neutral (6.6 – 7.3)'
+            self.ph = 'neutral (6.6 - 7.3)'
         elif ph < 7.9:
-            self.ph = 'Slightly alkaline (7.4 – 7.8)'
+            self.ph = 'slightly alkaline (7.4 - 7.8)'
         elif ph < 8.5:
-            self.ph = 'Moderately alkaline (7.9 – 8.4)'
+            self.ph = 'moderately alkaline (7.9 - 8.4)'
         else:
-            self.ph = 'Strongly alkaline (8.5 – 9.0)'
-        sun_list = ['Full Sun', 'Full Sun to Partial Shade',
-            'Partial or Dappled Shade', 'Partial Shade to Full Shade', 
-            'Full Shade']
+            self.ph = 'strongly alkaline (8.5 - 9.0)'
+        sun_list = ['full sun', 'full sun to partial shade',
+            'partial or dappled shade', 'partial shade to full shade', 
+            'full shade']
         self.sun = sun_list[sun_list.index(sun):]
-        if soil_texture in {'coarse', 'sand', 'coarse_sand', 'fine_sand', 
-                            'loamy_coarse_sand', 'loamy_fine_sand', 
-                            'loamy_very_fine_sand', 'very_fine_sand', 
-                            'loamy_sand'}:
-            self.soil_texture = 'Coarse Soil'
-        elif soil_texture in {'medium', 'silt', 'sandy_clay_loam', 
-                            'very_fine_sandy_loam', 'silty_clay_loam', 
-                            'silt_loam', 'loam', 'fine_sandy_loam', 'sandy_loam', 
-                            'coarse_sandy_loam', 'clay_loam'}:
-            self.soil_texture = 'Medium Soil'
-        elif soil_texture in {'fine', 'sandy_clay', 'silty_clay', 'clay'}:
-            self.soil_texture = 'Fine Soil'
-        self.habits = {'Herb/Forb', 'Shrub', 'Tree', 'Cactus/Succulent', 
-            'Grass/Grass-like', 'Fern', 'Vine'}
-        plants = pd.read_csv('all_native_plants.csv')
-        plants = plants[(plants['Minimum cold hardiness']<=zone) & 
-            ((plants['Maximum recommended zone']==np.nan) | 
-            (plants['Maximum recommended zone']>=zone))]
+        if soil_texture in {'coarse', 'sand', 'coarse sand', 'fine  sand', 
+                            'loamy coarse sand', 'loamy fine sand', 
+                            'loamy very fine sand', 'very fine sand', 
+                            'loamy sand'}:
+            self.soil_texture = 'coarse Soil'
+        elif soil_texture in {'medium', 'silt', 'sandy clay loam', 
+                            'very fine sandy loam', 'silty clay loam', 
+                            'silt loam', 'loam', 'fine  sandy loam', 'sandy loam', 
+                            'coarse sandy loam', 'clay loam'}:
+            self.soil_texture = 'medium Soil'
+        elif soil_texture in {'fine', 'sandy clay', 'silty clay', 'clay'}:
+            self.soil_texture = 'fine Soil'
+        self.habits = {'herb/forb', 'shrub', 'tree', 'cactus/succulent', 
+            'grass/grass-like', 'fern', 'vine'}
+        plants = pd.read_csv('../data/all_native_plants.csv')
+        import pdb; pdb.set_trace()
+        plants = plants[(plants['minimum cold hardiness']<=zone) & 
+            ((plants['maximum recommended zone']==np.nan) | 
+            (plants['maximum recommended zone']>=zone))]
         self.plants = pd.DataFrame()
         for s in self.sun:
             self.plants = self.plants.append(plants[plants[s]==True], 
@@ -413,16 +417,18 @@ class GuildRecommender:
         self.plants = self.plants[self.plants[self.water]==True]
         self.plants = self.plants[self.plants[self.soil_texture]==True]
         if edible_only:
-            self.plants = self.plants[(self.plants['Seeds or Nuts']==True) | 
-                (self.plants['Stem']==True) | (self.plants['Leaves']==True) | 
-                (self.plants['Roots']==True) | (self.plants['Bark']==True) |
-                (self.plants['Sap']==True) |  (self.plants['Fruit']==True) | 
-                (self.plants['Flowers']==True)]
+            self.plants = self.plants[(self.plants['edible inner bark']==True) | 
+                (self.plants['edible stems']==True) | (self.plants['edible leaves']==True) | 
+                (self.plants['edible roots']==True) | (self.plants['edible inner bark']==True) |
+                (self.plants['edible sap']==True) |  (self.plants['edible fruit']==True) | 
+                (self.plants['edible flowers']==True) | (self.plants['edible seeds']==True) | 
+                (self.plants['edible seedpods']==True) | (self.plants['edible shoots']==True)]
         self.include_trees = include_trees
         if not self.include_trees:
-            self.plants = self.plants[self.plants['Tree']!=True]
-        if perennial_only:
-            self.plants = self.plants[self.plants['Life cycle']=='Perennial']
+            self.plants = self.plants[self.plants['tree']!=True]
+        # this column was deleted somehow 
+        # if perennial_only:
+        #     self.plants = self.plants[self.plants['Life cycle']=='Perennial']
 
     def create_guild(self):
         n_fixers = False
@@ -442,47 +448,47 @@ class GuildRecommender:
         rhizome = None 
         vine = None 
         if 'canopy' in guild_layers:
-            canopies = self.plants[(self.plants['Tree']==True) &  
+            canopies = self.plants[(self.plants['tree']==True) &  
                 (self.plants[self.sun[0]]==True)]
             canopy = canopies.iloc[random.randint(0, len(canopies))]
             guild = guild.append(canopy, ignore_index=True)
         if 'understory' in guild_layers:
-            all_understories = self.plants[self.plants['Tree']==True]
+            all_understories = self.plants[self.plants['tree']==True]
             understories = pd.DataFrame()
             if 'canopy' in guild_layers:
                 for s in self.sun[1:]:
                     understories = understories.append(all_understories[
                         all_understories[s]==True], ignore_index=True) 
-                canopy_height = canopy['Min Height']
+                canopy_height = canopy['min height']
                 if canopy_height is not np.nan:
-                    understories = understories[understories['Max Height'] < 
+                    understories = understories[understories['max height'] < 
                         canopy_height]
                 else:
-                    understories = understories[understories['Max Height'] < 50]
+                    understories = understories[understories['max height'] < 50]
             else:
                 understories = all_understories[all_understories[self.sun[0]]==
                     True]
-                understories = understories[understories['Max Height'] < 50]
+                understories = understories[understories['max height'] < 50]
             understory = understories.iloc[random.randint(0, len(understories))]
             guild = guild.append(understory, ignore_index=True)
         canopy_present = 'canopy' in guild_layers
         understory_present = 'understory' in guild_layers
         if 'shrub' in guild_layers:
-            shrub = self.get_lower_plants(['Shrub'], canopy_present, understory_present) 
+            shrub = self.get_lower_plants(['shrub'], canopy_present, understory_present) 
             guild = guild.append(shrub, ignore_index=True)
         if 'herb' in guild_layers:
-            herb = self.get_lower_plants(['Herb/Forb', 'Fern'], canopy_present, 
+            herb = self.get_lower_plants(['herb/forb', 'fern'], canopy_present, 
                 understory_present)
             guild = guild.append(herb, ignore_index=True)
         if 'vine' in guild_layers:
-            vine = self.get_lower_plants(['Vine'], canopy_present, understory_present)
+            vine = self.get_lower_plants(['vine'], canopy_present, understory_present)
             guild = guild.append(vine, ignore_index=True)
         if 'rhizome' in guild_layers:
-            rhizome = self.get_lower_plants(['Rhizome', 'Tuber'], canopy_present, 
+            rhizome = self.get_lower_plants(['rhizome', 'tuber'], canopy_present, 
                 understory_present)
             guild = guild.append(rhizome, ignore_index=True)
-        n_fixers = (guild['Nitrogen fixer'] == True).any()
-        groundcover = self.get_lower_plants(['Groundcover'], canopy_present,
+        n_fixers = (guild['nitrogen fixer'] == True).any()
+        groundcover = self.get_lower_plants(['groundcover'], canopy_present,
             understory_present, n_fixers)
         guild = guild.append(groundcover, ignore_index=True)
         return guild
@@ -494,7 +500,7 @@ class GuildRecommender:
         for l in layers:
             all_in_layer = all_in_layer.append(self.plants[self.plants[l]==True])
         if not n_fix:
-            all_in_layer = all_in_layer[all_in_layer['Nitrogen fixer']==True]
+            all_in_layer = all_in_layer[all_in_layer['nitrogen fixer']==True]
         selected = pd.DataFrame()
         if canopy_present or understory_present:
             for s in self.sun[1:]:
@@ -506,3 +512,5 @@ class GuildRecommender:
 
 # TODO: include 'Leaves Spring ephemeral' with herbs that grow later'
 # TODO: add method to get columns and add option to filter by specified columns
+# TODO: find lifecycle columns and add to all_native_plants
+# TODO: fix redundant and unnamed columns
