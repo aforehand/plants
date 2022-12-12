@@ -425,9 +425,8 @@ class GuildRecommender:
         self.include_trees = include_trees
         if not self.include_trees:
             self.plants = self.plants[self.plants['tree']!=True]
-        # this column was deleted somehow 
-        # if perennial_only:
-        #     self.plants = self.plants[self.plants['Life cycle']=='Perennial']
+        if perennial_only:
+            self.plants = self.plants[self.plants['duration']=='Perennial']
 
     def create_guild(self):
         n_fixers = False
