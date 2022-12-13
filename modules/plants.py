@@ -1,6 +1,7 @@
 import pandas as pd 
 import re
 import numpy as np
+import pathlib
 import random
 from selenium.webdriver import Firefox
 from selenium.webdriver.firefox.options import Options
@@ -238,7 +239,7 @@ class PlantRecommender:
         if new:
             plants = pd.DataFrame()
         else:
-            plants = pd.read_csv('../data/all_native_plants.csv')                   
+            plants = pd.read_csv(self.data_path/'all_native_plants.csv')                   
         options = Options()
         options.headless = True
         for i in range(74200,93000,1000):
@@ -251,7 +252,7 @@ class PlantRecommender:
             data_list = eval(data_list.text.replace('null', 'None'))['data']
             for j in range(len(data_list)):
                 if j % 10 == 1:
-                    plants.to_csv('../data/all_native_plants.csv', index=False)
+                    plants.to_csv(self.data_path/'all_native_plants.csv', index=False)
                     self.driver.quit()
                     self.driver = Firefox(options=options)
                     print('.', end='', flush=True)
@@ -362,6 +363,7 @@ class GuildRecommender:
     def __init__(self, num_layers=None, zone=7, water='mesic', ph=6.5, 
                 sun='full sun', soil_texture='medium', include_trees=True, 
                 edible_only=False, perennial_only=True):
+        self.data_path = pathlib.Path(__file__).parent.parent.resolve() / 'data'
         if num_layers==None:
             self.num_layers = random.randint(2,7)
         else:
@@ -404,7 +406,7 @@ class GuildRecommender:
             self.soil_texture = 'fine soil'
         self.habits = {'herb/forb', 'shrub', 'tree', 'cactus/succulent', 
             'grass/grass-like', 'fern', 'vine'}
-        plants = pd.read_csv('../data/all_native_plants.csv')
+        plants = pd.read_csv(self.data_path/'all_native_plants.csv')
         plants = plants[(plants['minimum cold hardiness']<=zone) & 
             ((plants['maximum recommended zone']==np.nan) | 
             (plants['maximum recommended zone']>=zone))]
@@ -433,10 +435,10 @@ class GuildRecommender:
         if self.include_trees:
             all_layers = ['canopy', 'understory', 'shrub', 'herb','rhizome', 
                 'vine']
-            guild_layers = random.sample(all_layers, self.num_layers-1)
+            guild_layers = random.sample(all_layers, self.num_layers)
         else:
             all_layers = ['shrub', 'herb', 'rhizome', 'vine']
-            guild_layers = random.choices(all_layers, self.num_layers-1)
+            guild_layers = random.choices(all_layers, self.num_layers)
         guild = pd.DataFrame()
         canopy = None
         understory = None
@@ -445,9 +447,10 @@ class GuildRecommender:
         groundcover = None 
         rhizome = None 
         vine = None 
+        # import pdb; pdb.set_trace()
+        # there's an indexerror in here
         if 'canopy' in guild_layers:
-            canopies = self.plants[(self.plants['tree']==True) &  
-                (self.plants[self.sun[0]]==True)]
+            canopies = self.plants[(self.plants['tree']==True) &  (self.plants[self.sun[0]]==True)]
             canopy = canopies.iloc[random.randint(0, len(canopies))]
             guild = guild.append(canopy, ignore_index=True)
         if 'understory' in guild_layers:
@@ -459,13 +462,11 @@ class GuildRecommender:
                         all_understories[s]==True], ignore_index=True) 
                 canopy_height = canopy['min height']
                 if canopy_height is not np.nan:
-                    understories = understories[understories['max height'] < 
-                        canopy_height]
+                    understories = understories[understories['max height'] < canopy_height]
                 else:
                     understories = understories[understories['max height'] < 50]
             else:
-                understories = all_understories[all_understories[self.sun[0]]==
-                    True]
+                understories = all_understories[all_understories[self.sun[0]]==True]
                 understories = understories[understories['max height'] < 50]
             understory = understories.iloc[random.randint(0, len(understories))]
             guild = guild.append(understory, ignore_index=True)

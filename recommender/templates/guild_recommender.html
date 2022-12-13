@@ -1,0 +1,85 @@
+{% load tags %}
+
+<h1>What should I plant?</h1>
+{% if guild %}
+    {% for plant in guild %}
+        <p>{{ plant }}</p>
+    {% endfor %}
+{% endif %}
+<form class="settings" action="" method="post">
+    {% csrf_token %}
+    <ul>
+        <li>
+            <label for="layers-select">Number of layers in guild</label>
+            <select name="layers" id="layers-select">
+                <option value="random" selected>random</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+            </select>
+        </li>
+        <li>
+            <label for="zone-select">USDA hardiness zone</label>
+            <select name="zone" id="zone-select">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7" selected>7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select> 
+        </li>
+        <li>
+            <label for="water-select">Site moisture level</label>
+            <select name="water" id="water-select">
+                <option value="in water">in water</option>
+                <option value="wet">wet</option>
+                <option value="mesic" selected>mesic</option>
+                <option value="dry mesic">dry mesic</option>
+                <option value="dry">dry</option>
+            </select>
+        </li>
+        <li>
+            <label for="ph-select">pH (3.5 - 9.0)</label>
+            <input type="text" name="ph" id="ph-select" minlength="1" maxlength="4" value="6.5">
+        </li>
+        <li>
+            <label for="sun-select">Site sun level</label>
+            <select name="sun" id="sun-select">
+                <option value="full sun" selected>full sun</option>
+                <option value="full sun to partial shade">full sun to partial shade</option>
+                <option value="partial or dappled shade">partial or dappled shade</option>
+                <option value="partial shade to full shade">partial shade to full shade</option>
+                <option value="full shade">full shade</option>
+            </select>
+        </li>
+        <li>
+            <lebel for="soil-select">Soil texture</lebel>
+            <select name="soil" id="soil-select">
+                <option value="coarse" >coarse</option>
+                <option value="medium" selected>medium</option>
+                <option value="fine" selected>fine</option>
+            </select>
+        </li>
+        <li>
+            <label for="trees-select">Include trees?</label>
+            <input type="checkbox" name="trees" id="trees-select">
+        </li>
+        <li>
+            <label for="edible-select">Include only edible plants?</label>
+            <input type="checkbox" name="edible" id="edible-select">
+        </li>
+        <li>
+            <label for="perennials-select">Include only perennial plants?</label>
+            <input type="checkbox" name="perennials" id="perennials-select">
+        </li>
+    </ul>
+    <input type="submit" value="Create Guild">
+</form>
