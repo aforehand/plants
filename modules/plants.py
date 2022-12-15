@@ -327,6 +327,10 @@ class GuildRecommender:
     zone: int, default=7
         USDA hardiness zone of intended site. Can range from 1-10.
 
+    region: string, default=None
+        Values can be {'northeast', 'southeast', 'midwest', 'plains', 'pacific'}.
+        Set to find plants that are native to a specific region.
+
     water: string, 
         default='mesic'
         The moisute of the soil at the site. 
@@ -361,14 +365,15 @@ class GuildRecommender:
     """
 
     def __init__(self, num_layers=None, zone=7, water='mesic', ph=6.5, 
-                sun='full sun', soil_texture='medium', include_trees=True, 
-                edible_only=False, perennial_only=True):
+                sun='full sun', soil_texture='medium', region=None, 
+                include_trees=True, edible_only=False, perennial_only=True):
         self.data_path = pathlib.Path(__file__).parent.parent.resolve() / 'data'
         if num_layers==None:
             self.num_layers = random.randint(2,7)
         else:
             self.num_layers = num_layers 
         self.zone = zone 
+        self.region = region
         self.water = water 
         if ph < 4.5:
             self.ph = 'extremely acid (3.5 - 4.4)'
@@ -404,9 +409,12 @@ class GuildRecommender:
             self.soil_texture = 'medium soil'
         elif soil_texture in {'fine', 'sandy clay', 'silty clay', 'clay'}:
             self.soil_texture = 'fine soil'
+        self.region=region
         self.habits = {'herb/forb', 'shrub', 'tree', 'cactus/succulent', 
             'grass/grass-like', 'fern', 'vine'}
         plants = pd.read_csv(self.data_path/'all_native_plants.csv')
+        if self.region:
+            plants = plants[plants[self.region]==True]
         plants = plants[(plants['minimum cold hardiness']<=zone) & 
             ((plants['maximum recommended zone']==np.nan) | 
             (plants['maximum recommended zone']>=zone))]
