@@ -327,8 +327,8 @@ class GuildRecommender:
     zone: int, default=7
         USDA hardiness zone of intended site. Can range from 1-10.
 
-    region: string, default=None
-        Values can be {'northeast', 'southeast', 'midwest', 'plains', 'pacific'}.
+    region: string, default='all'
+        Values can be {'all', 'northeast', 'southeast', 'midwest', 'plains', 'pacific'}.
         Set to find plants that are native to a specific region.
 
     water: string, 
@@ -364,10 +364,11 @@ class GuildRecommender:
         Whether only perennial plants will be considered when creating guilds.
     """
 
-    def __init__(self, num_layers=None, zone=7, water='mesic', ph=6.5, 
-                sun='full sun', soil_texture='medium', region=None, 
-                include_trees=True, edible_only=False, perennial_only=True):
+    def __init__(self, num_layers=None, zone=7, region='all', water='mesic', 
+                ph=6.5, sun='full sun', soil_texture='medium', include_trees=True, 
+                edible_only=False, perennial_only=True):
         self.data_path = pathlib.Path(__file__).parent.parent.resolve() / 'data'
+        # TODO: fix. num_layers can't be more than 5 without trees.
         if num_layers==None:
             self.num_layers = random.randint(2,7)
         else:
@@ -413,7 +414,7 @@ class GuildRecommender:
         self.habits = {'herb/forb', 'shrub', 'tree', 'cactus/succulent', 
             'grass/grass-like', 'fern', 'vine'}
         plants = pd.read_csv(self.data_path/'all_native_plants.csv')
-        if self.region:
+        if self.region != "all":
             plants = plants[plants[self.region]==True]
         plants = plants[(plants['minimum cold hardiness']<=zone) & 
             ((plants['maximum recommended zone']==np.nan) | 
@@ -443,10 +444,10 @@ class GuildRecommender:
         if self.include_trees:
             all_layers = ['canopy', 'understory', 'shrub', 'herb','rhizome', 
                 'vine']
-            guild_layers = random.sample(all_layers, self.num_layers)
+            guild_layers = random.sample(all_layers, self.num_layers-1)
         else:
             all_layers = ['shrub', 'herb', 'rhizome', 'vine']
-            guild_layers = random.choices(all_layers, self.num_layers)
+            guild_layers = random.choices(all_layers, self.num_layers-1)
         guild = pd.DataFrame()
         canopy = None
         understory = None
