@@ -425,7 +425,6 @@ class GuildRecommender:
             (plants['maximum recommended zone']>=zone))]
         self.plants = pd.DataFrame()
         for s in self.sun:
-            # self.plants = self.plants.append(plants[plants[s]==True], ignore_index=True)
             self.plants = pd.concat([self.plants, plants[plants[s]==True]], ignore_index=True)
         self.plants = self.plants[self.plants[self.ph]==True]
         self.plants = self.plants[self.plants[self.water]==True]
@@ -461,18 +460,19 @@ class GuildRecommender:
         rhizome = None 
         vine = None 
         if 'canopy' in guild_layers:
-            canopies = self.plants[(self.plants['tree']==True) &  (self.plants[self.sun[0]]==True)]
+            canopies = self.plants[(self.plants['tree']==True) &  (self.plants[self.sun[0]]==True) ]
             canopy = canopies.iloc[[random.randint(0, len(canopies))]]
             canopy['layer'] = 'canopy'
             guild = pd.concat([guild, canopy], ignore_index=True)
         if 'understory' in guild_layers:
-            all_understories = self.plants[self.plants['tree']==True]
+            all_understories = self.plants[(self.plants['tree']==True) & self.plants['max height'] < 50]
             understories = pd.DataFrame()
             if 'canopy' in guild_layers:
                 for s in self.sun[1:]:
                     understories = pd.concat([understories, all_understories[all_understories[s]==True]], ignore_index=True)
-                canopy_height = canopy.at[canopy.index[0], 'min height']
-                if canopy_height is not np.nan:
+                # some small plants are mislabeled as trees in csv which breaks this
+                canopy_height = canopy.at[canopy.index[0], 'max height']
+                if not pd.isna(canopy_height):
                     understories = understories[understories['max height'] < canopy_height]
                 else:
                     understories = understories[understories['max height'] < 50]
@@ -504,6 +504,7 @@ class GuildRecommender:
         groundcover = self.get_lower_plants(['groundcover'], canopy_present,understory_present, n_fixers)
         groundcover['layer'] = 'groundcover'
         guild = pd.concat([guild, groundcover], ignore_index=True)
+        guild['pfaf_url'] = guild.apply(lambda row: f"https://pfaf.org/user/Plant.aspx?LatinName={row.genus}+{row.species}", axis=1)
         return guild
         
     def get_lower_plants(self, layers, canopy_present, understory_present, n_fix=True):
