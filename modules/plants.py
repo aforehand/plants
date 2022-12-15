@@ -470,7 +470,8 @@ class GuildRecommender:
             if 'canopy' in guild_layers:
                 for s in self.sun[1:]:
                     understories = pd.concat([understories, all_understories[all_understories[s]==True]], ignore_index=True)
-                canopy_height = canopy['min height']
+                import pdb; pdb.set_trace()
+                canopy_height = canopy.at[canopy.index[0], 'min height']
                 if canopy_height is not np.nan:
                     understories = understories[understories['max height'] < canopy_height]
                 else:
