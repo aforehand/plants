@@ -60,5 +60,5 @@ class GuildRecommenderView(View):
                 perennial_only=self.context['perennial_only']
             )
         guild = self.rec.create_guild().to_dict(orient='records')
-        self.context['guild'] = [f"{guild[i]['genus']} {guild[i]['species']}" for i in range(len(guild))]
+        self.context['guild'] = [f"{guild[i]['layer']}: {guild[i]['genus']} {guild[i]['species']}" for i in range(len(guild))]
         return render(request, self.template_name, self.context)
