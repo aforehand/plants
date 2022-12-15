@@ -17,6 +17,10 @@ class PlantRecommender:
     (https://github.com/sckott/usdaplantsapi/) and the National Gardening 
     Association's plant database (https://garden.org) to recommend plants for 
     various uses.
+    ----------
+    NOTE Data and GuildRecommender have been updated more recently than this.
+    Update before using again.
+    ----------
 
     Parameters
     ----------
@@ -421,8 +425,8 @@ class GuildRecommender:
             (plants['maximum recommended zone']>=zone))]
         self.plants = pd.DataFrame()
         for s in self.sun:
-            self.plants = self.plants.append(plants[plants[s]==True], 
-                ignore_index=True)
+            # self.plants = self.plants.append(plants[plants[s]==True], ignore_index=True)
+            self.plants = pd.concat([self.plants, plants[plants[s]==True]], ignore_index=True)
         self.plants = self.plants[self.plants[self.ph]==True]
         self.plants = self.plants[self.plants[self.water]==True]
         self.plants = self.plants[self.plants[self.soil_texture]==True]
@@ -456,19 +460,16 @@ class GuildRecommender:
         groundcover = None 
         rhizome = None 
         vine = None 
-        # import pdb; pdb.set_trace()
-        # there's an indexerror in here
         if 'canopy' in guild_layers:
             canopies = self.plants[(self.plants['tree']==True) &  (self.plants[self.sun[0]]==True)]
-            canopy = canopies.iloc[random.randint(0, len(canopies))]
-            guild = guild.append(canopy, ignore_index=True)
+            canopy = canopies.iloc[[random.randint(0, len(canopies))]]
+            guild = pd.concat([guild, canopy], ignore_index=True)
         if 'understory' in guild_layers:
             all_understories = self.plants[self.plants['tree']==True]
             understories = pd.DataFrame()
             if 'canopy' in guild_layers:
                 for s in self.sun[1:]:
-                    understories = understories.append(all_understories[
-                        all_understories[s]==True], ignore_index=True) 
+                    understories = pd.concat([understories, all_understories[all_understories[s]==True]], ignore_index=True)
                 canopy_height = canopy['min height']
                 if canopy_height is not np.nan:
                     understories = understories[understories['max height'] < canopy_height]
@@ -477,45 +478,43 @@ class GuildRecommender:
             else:
                 understories = all_understories[all_understories[self.sun[0]]==True]
                 understories = understories[understories['max height'] < 50]
-            understory = understories.iloc[random.randint(0, len(understories))]
-            guild = guild.append(understory, ignore_index=True)
+            understory = understories.iloc[[random.randint(0, len(understories))]]
+            guild = pd.concat([guild, understory], ignore_index=True)
         canopy_present = 'canopy' in guild_layers
         understory_present = 'understory' in guild_layers
         if 'shrub' in guild_layers:
             shrub = self.get_lower_plants(['shrub'], canopy_present, understory_present) 
-            guild = guild.append(shrub, ignore_index=True)
+            guild = pd.concat([guild, shrub], ignore_index=True)
         if 'herb' in guild_layers:
             herb = self.get_lower_plants(['herb/forb', 'fern'], canopy_present, 
                 understory_present)
-            guild = guild.append(herb, ignore_index=True)
+            guild = pd.concat([guild, herb], ignore_index=True)
         if 'vine' in guild_layers:
             vine = self.get_lower_plants(['vine'], canopy_present, understory_present)
-            guild = guild.append(vine, ignore_index=True)
+            guild = pd.concat([guild, vine], ignore_index=True)
         if 'rhizome' in guild_layers:
             rhizome = self.get_lower_plants(['rhizome', 'tuber'], canopy_present, 
                 understory_present)
-            guild = guild.append(rhizome, ignore_index=True)
-        n_fixers = (guild['nitrogen fixer'] == True).any()
+            guild = pd.concat([guild, rhizome], ignore_index=True)
+        n_fixers = (guild['nitrogen fixer']==True).any()
         groundcover = self.get_lower_plants(['groundcover'], canopy_present,
             understory_present, n_fixers)
-        guild = guild.append(groundcover, ignore_index=True)
+        guild = pd.concat([guild, groundcover], ignore_index=True)
         return guild
         
-
-
     def get_lower_plants(self, layers, canopy_present, understory_present, n_fix=True):
         all_in_layer = pd.DataFrame()
         for l in layers:
-            all_in_layer = all_in_layer.append(self.plants[self.plants[l]==True])
+            all_in_layer = pd.concat([all_in_layer, self.plants[self.plants[l]==True]], ignore_index=True)
         if not n_fix:
             all_in_layer = all_in_layer[all_in_layer['nitrogen fixer']==True]
         selected = pd.DataFrame()
         if canopy_present or understory_present:
             for s in self.sun[1:]:
-                selected = selected.append(all_in_layer[all_in_layer[s]==True])
+                selected = pd.concat([selected, all_in_layer[all_in_layer[s]==True]], ignore_index=True)
         else:
             selected = all_in_layer[all_in_layer[self.sun[0]]==True]
-        plant = selected.iloc[random.randint(0, len(selected))]
+        plant = selected.iloc[[random.randint(0, len(selected))]]
         return plant
 
 # TODO: include 'Leaves Spring ephemeral' with herbs that grow later'
