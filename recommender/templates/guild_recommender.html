@@ -3,7 +3,10 @@
 <h1>What should I plant?</h1>
 {% if guild %}
     {% for plant in guild %}
-        <p>{{ plant|get_item:'layer' }}: <a href={{ plant|get_item:'pfaf_url' }} target="_blank"><em>{{ plant|get_item:'genus' }} {{ plant|get_item:'species' }}</em></a></p>
+        <p>
+            {{ plant|get_item:'layer' }}: <a href={{ plant|get_item:'pfaf_url' }} target="_blank"><em>{{ plant|get_item:'genus' }} {{ plant|get_item:'species' }}</em></a><br>
+            common names: {{ plant|get_item:'common name'}}
+        </p>
     {% endfor %}
 {% endif %}
 <form class="settings" action="" method="post">
