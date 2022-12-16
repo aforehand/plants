@@ -461,11 +461,11 @@ class GuildRecommender:
         vine = None 
         if 'canopy' in guild_layers:
             canopies = self.plants[(self.plants['tree']==True) &  (self.plants[self.sun[0]]==True) ]
-            canopy = canopies.iloc[[random.randint(0, len(canopies))]]
+            canopy = canopies.sample(1)
             canopy['layer'] = 'canopy'
             guild = pd.concat([guild, canopy], ignore_index=True)
         if 'understory' in guild_layers:
-            all_understories = self.plants[(self.plants['tree']==True) & self.plants['max height'] < 50]
+            all_understories = self.plants[(self.plants['tree']==True) & (self.plants['max height'] < 50)]
             understories = pd.DataFrame()
             if 'canopy' in guild_layers:
                 for s in self.sun[1:]:
@@ -474,12 +474,9 @@ class GuildRecommender:
                 canopy_height = canopy.at[canopy.index[0], 'max height']
                 if not pd.isna(canopy_height):
                     understories = understories[understories['max height'] < canopy_height]
-                else:
-                    understories = understories[understories['max height'] < 50]
             else:
                 understories = all_understories[all_understories[self.sun[0]]==True]
-                understories = understories[understories['max height'] < 50]
-            understory = understories.iloc[[random.randint(0, len(understories))]]
+            understory = understories.sample(1)
             understory['layer'] = 'understory'
             guild = pd.concat([guild, understory], ignore_index=True)
         canopy_present = 'canopy' in guild_layers
@@ -519,7 +516,7 @@ class GuildRecommender:
                 selected = pd.concat([selected, all_in_layer[all_in_layer[s]==True]], ignore_index=True)
         else:
             selected = all_in_layer[all_in_layer[self.sun[0]]==True]
-        plant = selected.iloc[[random.randint(0, len(selected))]]
+        plant = selected.sample(1)
         return plant
 
 # TODO: include 'Leaves Spring ephemeral' with herbs that grow later'
