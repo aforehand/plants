@@ -459,28 +459,16 @@ class GuildRecommender:
         groundcover = None 
         rhizome = None 
         vine = None 
-        if 'canopy' in guild_layers:
-            canopies = self.plants[(self.plants['tree']==True) &  (self.plants[self.sun[0]]==True) ]
-            canopy = canopies.sample(1)
-            canopy['layer'] = 'canopy'
-            guild = pd.concat([guild, canopy], ignore_index=True)
-        if 'understory' in guild_layers:
-            all_understories = self.plants[(self.plants['tree']==True) & (self.plants['max height'] < 50)]
-            understories = pd.DataFrame()
-            if 'canopy' in guild_layers:
-                for s in self.sun[1:]:
-                    understories = pd.concat([understories, all_understories[all_understories[s]==True]], ignore_index=True)
-                # some small plants are mislabeled as trees in csv which breaks this
-                canopy_height = canopy.at[canopy.index[0], 'max height']
-                if not pd.isna(canopy_height):
-                    understories = understories[understories['max height'] < canopy_height]
-            else:
-                understories = all_understories[all_understories[self.sun[0]]==True]
-            understory = understories.sample(1)
-            understory['layer'] = 'understory'
-            guild = pd.concat([guild, understory], ignore_index=True)
         canopy_present = 'canopy' in guild_layers
         understory_present = 'understory' in guild_layers
+        if canopy_present:
+            canopy = self.get_canopy()
+            canopy['layer'] = 'canopy'
+            guild = pd.concat([guild, canopy], ignore_index=True)
+        if understory_present:
+            understory = self.get_understory(canopy_present)
+            understory['layer'] = 'understory'
+            guild = pd.concat([guild, understory], ignore_index=True)
         if 'shrub' in guild_layers:
             shrub = self.get_lower_plants(['shrub'], canopy_present, understory_present) 
             shrub['layer'] = 'shrub'
@@ -494,7 +482,7 @@ class GuildRecommender:
             vine['layer'] = 'vine'
             guild = pd.concat([guild, vine], ignore_index=True)
         if 'rhizome' in guild_layers:
-            rhizome = self.get_lower_plants(['rhizome', 'tuber'], canopy_present, understory_present)
+            rhizome = self.get_lower_plants(['rhizome', 'tuber', 'taproot'], canopy_present, understory_present)
             rhizome['layer'] = 'rhizome'
             guild = pd.concat([guild, rhizome], ignore_index=True)
         n_fixers = (guild['nitrogen fixer']==True).any()
@@ -503,6 +491,30 @@ class GuildRecommender:
         guild = pd.concat([guild, groundcover], ignore_index=True)
         guild['pfaf_url'] = guild.apply(lambda row: f"https://pfaf.org/user/Plant.aspx?LatinName={row.genus}+{row.species}", axis=1)
         return guild
+
+    def get_canopy(self):
+        canopies = self.plants[
+            (self.plants['tree']==True) & 
+            (self.plants[self.sun[0]]==True) & 
+            (self.plants['max height'] >= 50)
+        ]
+        canopy = canopies.sample(1)
+        return canopy
+
+    def get_understory(self, canopy_present):
+        all_understories = self.plants[(self.plants['tree']==True) & (self.plants['max height'] < 50)]
+        understories = pd.DataFrame()
+        if canopy_present:
+            if len(self.sun) > 1:
+                sun = self.sun[1:]
+            else:
+                sun = self.sun
+            for s in sun:
+                understories = pd.concat([understories, all_understories[all_understories[s]==True]], ignore_index=True)
+        else:
+            understories = all_understories[all_understories[self.sun[0]]==True]
+        understory = understories.sample(1)
+        return understory
         
     def get_lower_plants(self, layers, canopy_present, understory_present, n_fix=True):
         all_in_layer = pd.DataFrame()
@@ -512,7 +524,13 @@ class GuildRecommender:
             all_in_layer = all_in_layer[all_in_layer['nitrogen fixer']==True]
         selected = pd.DataFrame()
         if canopy_present or understory_present:
-            for s in self.sun[1:]:
+            if canopy_present and understory_present and len(self.sun) > 2:
+                sun = self.sun[2:]
+            elif len(self.sun) > 1:
+                sun = self.sun[1:]
+            else:
+                sun = self.sun
+            for s in sun:
                 selected = pd.concat([selected, all_in_layer[all_in_layer[s]==True]], ignore_index=True)
         else:
             selected = all_in_layer[all_in_layer[self.sun[0]]==True]
